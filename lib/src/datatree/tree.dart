@@ -1,28 +1,28 @@
 part of '../autotrie_base.dart';
 
 class _TrieSearchTree {
-  TrieNode root;
+  late TrieNode root;
   double Function(SortValue e) sort;
 
-  _TrieSearchTree (this.sort) {
+  _TrieSearchTree(this.sort) {
     root = TrieNode('', false);
     root.children = <TrieNode>[];
   }
 
-  void addWord (String word) {
+  void addWord(String word) {
     var base = root;
 
     //Iterate through string and add/progress through nodes.
-    for (var i = 0; i<word.length; i++) {
+    for (var i = 0; i < word.length; i++) {
       var x = TrieNode(word[i], false);
       if (!base.children.contains(x)) {
         // x is added to base.children
         base.children.add(x);
       } else {
         // x points to base.children version
-        x = base.children.where((e) => e==x).first;
+        x = base.children.where((e) => e == x).first;
       }
-      if (i == word.length-1) {
+      if (i == word.length - 1) {
         x.lastInsert = DateTime.now().millisecondsSinceEpoch;
         x.hits++;
       }
@@ -30,20 +30,20 @@ class _TrieSearchTree {
     }
   }
 
-  void addWordWithParams (String word, int hits, int lastInsert) {
+  void addWordWithParams(String word, int hits, int lastInsert) {
     var base = root;
 
     //Iterate through string and add/progress through nodes.
-    for (var i = 0; i<word.length; i++) {
+    for (var i = 0; i < word.length; i++) {
       var x = TrieNode(word[i], false);
       if (!base.children.contains(x)) {
         // x is added to base.children
         base.children.add(x);
       } else {
         // x points to base.children version
-        x = base.children.where((e) => e==x).first;
+        x = base.children.where((e) => e == x).first;
       }
-      if (i == word.length-1) {
+      if (i == word.length - 1) {
         x.lastInsert = lastInsert;
         x.hits = hits;
       }
@@ -59,9 +59,9 @@ class _TrieSearchTree {
     return returner;
   }
 
-  List<String> suggestions (String prefix) {
+  List<String> suggestions(String prefix) {
     var base = root;
-    for (var i = 0; i<prefix.length; i++) {
+    for (var i = 0; i < prefix.length; i++) {
       var x = TrieNode(prefix[i], false);
       if (base.children.contains(x)) {
         base = base.children[base.children.indexOf(x)];
@@ -88,14 +88,14 @@ class _TrieSearchTree {
     return returner.map((e) => e.value).toList();
   }
 
-  void _suggestRec (TrieNode node, String word, List<TrieString> returner) {
+  void _suggestRec(TrieNode node, String word, List<TrieString> returner) {
     if (node.hits > 0) returner.add(TrieString(word, node.hits, node.lastInsert));
     for (var n in node.children) {
       _suggestRec(n, word + n.value, returner);
     }
   }
 
-  bool search (String word) {
+  bool search(String word) {
     var base = root;
     for (var i = 0; i < word.length; i++) {
       var x = TrieNode(word[i], false);
@@ -105,7 +105,7 @@ class _TrieSearchTree {
     return true;
   }
 
-  void remove (String word) {
+  void remove(String word) {
     if (root.children.isEmpty) {
       return;
     } else if (!search(word)) {
@@ -114,16 +114,18 @@ class _TrieSearchTree {
     _delete(root, word, 0);
   }
 
-  bool _delete (TrieNode cur, String word, int index) {
+  bool _delete(TrieNode cur, String word, int index) {
     if (index == word.length) {
       return cur.children.isEmpty;
     }
     var ch = word[index];
-    var next = cur.children[cur.children.indexOf(TrieNode(ch, index == word.length-1))];
-    if (next == null) {
+    final indexOf = cur.children.indexOf(TrieNode(ch, index == word.length - 1));
+    if (indexOf == -1 || indexOf >= cur.children.length) {
       return false;
     }
-    var shouldDeleteNode = _delete(next, word, index + 1) && (!(next.hits>0) || index == word.length -1);
+    var next = cur.children[indexOf];
+    var shouldDeleteNode =
+        _delete(next, word, index + 1) && (!(next.hits > 0) || index == word.length - 1);
 
     if (shouldDeleteNode) {
       cur.children.remove(next);
@@ -138,11 +140,7 @@ class TrieString {
   int hits;
   int lastInsert;
 
-  TrieString(String value, int hits, int insert) {
-    this.value = value;
-    this.hits = hits;
-    lastInsert = insert;
-  }
+  TrieString(this.value, this.hits, this.lastInsert);
 
   @override
   String toString() {
@@ -155,14 +153,18 @@ class TrieNode {
   List<TrieNode> children;
   int lastInsert;
   int hits = 0;
+  final bool isEnd;
 
-  TrieNode(String value, bool isEnd) {
-    this.value = value;
-    children = <TrieNode>[];
-  }
+  TrieNode(this.value, this.isEnd)
+      : children = <TrieNode>[],
+        lastInsert = 0,
+        hits = 0;
 
   @override
-  bool operator ==(other) {
-    return value == other.value;
+  bool operator ==(Object other) {
+    if (other is TrieNode) {
+      return value == other.value;
+    }
+    return false;
   }
 }

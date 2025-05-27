@@ -1,8 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:hive/hive.dart';
-import 'package:meta/meta.dart';
+import 'package:hive_ce/hive.dart';
 
 part 'datatree/tree.dart';
 
@@ -11,7 +10,7 @@ part 'datatree/tree.dart';
 /// Add entries to build up the suggestion bank. Then, you can use the suggest
 /// method to get the auto-completions for the beginning of a String.
 class AutoComplete {
-  _TrieSearchTree _tree;
+  late _TrieSearchTree _tree;
 
   /// Whether this autocompletion engine has changed since the last time
   /// `persist` was called.
@@ -29,7 +28,7 @@ class AutoComplete {
   ///
   /// If multiple words have the same number of entries, they are sorted by recency,
   /// with the most recently entered word being on top.
-  AutoComplete({@required SortEngine engine, List<String> bank}) {
+  AutoComplete({required SortEngine engine, List<String>? bank}) {
     _tree = _TrieSearchTree(engine.scoreFunc);
     bank ??= <String>[];
     for (var x in bank) {
@@ -37,7 +36,7 @@ class AutoComplete {
     }
   }
 
-  AutoComplete.fromFile({@required File file, @required SortEngine engine}) {
+  AutoComplete.fromFile({required File file, required SortEngine engine}) {
     var fileBank = file.readAsLinesSync();
     var tree = _TrieSearchTree(engine.scoreFunc);
     for (var x in fileBank) {
@@ -165,7 +164,7 @@ extension AutoCompleteBox on Box {
 }
 
 class SortEngine {
-  double Function(SortValue element) scoreFunc;
+  late double Function(SortValue element) scoreFunc;
 
   /// You can manually define a function to score a given [_SortValue] on a
   /// scale of 0 to 1. A [_SortValue] consists of [msToNow], which is how many
